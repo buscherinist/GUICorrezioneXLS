@@ -95,8 +95,8 @@ def carica_soluzioni(file_soluzioni):
     return soluzioni
 
 def controlla_formule(nome_file_excel, soluzioni):
-    # Apre il file Excel e controlla le formule
-    workbook = openpyxl.load_workbook(nome_file_excel, data_only=False)
+    # Apre il file Excel e controlla le formule (data_only=False per ottenere la formula)
+    workbook = openpyxl.load_workbook(nome_file_excel, data_only=False)  # Usa data_only=False per leggere le formule
     punteggio_totale = 0
     risultati = {nome_file_excel: {}}
 
@@ -105,21 +105,32 @@ def controlla_formule(nome_file_excel, soluzioni):
         risultati[nome_file_excel][foglio_nome] = {}
 
         for cella, (formula_attesa, valore_atteso, punti) in celle.items():
-            valore_cella = foglio[cella].value
-            valore_cella = valore_cella.replace(" ", "")
-            valore_cella2 = foglio[cella].value
-            # Verifica se la formula è corretta
-            #uguali = formule_uguali(valore_cella, formula_attesa)
-            if (valore_cella == formula_attesa) and (valore_cella2 == valore_atteso):
-            #if uguali:
+            # Ottieni l'oggetto cella dal foglio
+            cella_oggetto = foglio[cella]
+
+            # Ottieni il valore calcolato della cella (risultato della formula)
+            valore_cella = cella_oggetto.value
+            print(f"Valore della cella (risultato formula): {valore_cella}")
+
+            # Ottieni la formula (se presente)
+            formula_cella = None
+            if hasattr(cella_oggetto, 'formula'):  # Verifica se la cella ha un attributo 'formula'
+                formula_cella = cella_oggetto.formula
+                print(f"Formula della cella: {formula_cella}")
+            else:
+                print(f"La cella {cella} non contiene una formula.")
+
+            # Confronta la formula e il valore
+            if formula_cella == formula_attesa and valore_cella == valore_atteso:
                 risultati[nome_file_excel][foglio_nome][cella] = f"Formula corretta: {formula_attesa} (+{punti} punti)"
-                risultati[nome_file_excel] [foglio_nome][cella] = f"Cella {cella}: Valore corretto (+{punti} punti)"
                 punteggio_totale += punti
             else:
-                risultati[nome_file_excel][foglio_nome][
-                    cella] = f"Formula errata. Attesa: {formula_attesa}, Trovata: {valore_cella} (0 punti)"
-                risultati[nome_file_excel][foglio_nome][
-                    cella] = f"Valore errato. Atteso: {formula_attesa}, Trovata: {valore_cella} (0 punti)"
+                if formula_cella != formula_attesa:
+                    risultati[nome_file_excel][foglio_nome][
+                        cella] = f"Formula errata. Attesa: {formula_attesa}, Trovata: {formula_cella} (0 punti)"
+                if valore_cella != valore_atteso:
+                    risultati[nome_file_excel][foglio_nome][
+                        cella] += f"\nValore errato. Atteso: {valore_atteso}, Trovato: {valore_cella} (0 punti)"
 
     return risultati, punteggio_totale
 
