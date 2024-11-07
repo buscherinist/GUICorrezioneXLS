@@ -1,0 +1,8 @@
+Correzione
+File: ./verifiche/zoli.xlsx
+  Foglio: Foglio1
+    Cella D13: Formula errata. Attesa: =SUM(D6:D12), Trovata: =SUM(D6:D12) (0 punti)
+
+Punteggio totale complessivo ottenuto: 0
+
+
