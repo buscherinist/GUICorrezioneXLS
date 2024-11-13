@@ -1,6 +1,7 @@
 #per compilare
 #pyinstaller --onefile --noconsole main.py
 import openpyxl
+from openpyxl import load_workbook
 import os
 import tkinter as tk
 from tkinter import messagebox  # Importa messagebox per la finestra di conferma
@@ -153,6 +154,43 @@ def correggi():
         calcola_punteggio_totale(file_elenco_excel, file_soluzioni, file_output)
     mostra_file()
 
+def crea_soluzione():
+    # Percorso del file Excel
+    percorso_file = "soluzione/zoli.xlsx"
+    workbook = load_workbook(percorso_file)
+
+    # Nome del file di output
+    output_file = "celle_colorate_con_formula.txt"
+
+    # Apre il file di output in modalità scrittura
+    with open("prova.txt", "w") as f:
+        # Itera su tutti i fogli del file
+        for sheet_name in workbook.sheetnames:
+            sheet = workbook[sheet_name]
+
+            # Flag per scrivere il nome del foglio solo se ha celle colorate
+            foglio_con_celle_colorate = False
+            for row in sheet.iter_rows():
+                for cell in row:
+                    fill = cell.fill
+                    # Controlla se la cella ha un colore diverso dal default
+                    if fill and fill.start_color.index not in ["00000000", "FFFFFFFF","FFFFFF00"]:
+                        if not foglio_con_celle_colorate:
+                            # Scrive il nome del foglio nel file
+                            f.write(f"Foglio: {sheet_name}\n")
+                            foglio_con_celle_colorate = True
+
+                        # Ottiene la formula della cella, se presente
+                        formula = cell.value if cell.data_type == "f" else "Nessuna formula"
+
+                        # Scrive nel file la coordinata e la formula della cella
+                        f.write(f"{cell.coordinate}\n")
+                        #f.write(f"{fill.start_color.index}\n")
+                        f.write(f"{formula}\n")
+                        f.write(f"1\n")
+
+    print("Risultati salvati in:", output_file)
+
 #main
 #definisce i file di lavoro
 file_elenco_excel = 'elencoalunni.txt'
@@ -197,7 +235,7 @@ frame_center.pack(expand=True, fill="both")
 label_0 = tk.Label(frame_center, text="Creazione soluzione", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
 label_0.grid(row=0, column=0, padx=5, pady=2, sticky="w")
 
-button_soluzione = tk.Button(frame_center, text="Crea soluzione", bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=correggi)
+button_soluzione = tk.Button(frame_center, text="Crea soluzione", bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=crea_soluzione)
 button_soluzione.grid(row=0, column=1, pady=2, sticky="w")
 # Bind degli eventi per il cambiamento di colore
 button_soluzione.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
