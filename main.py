@@ -1,6 +1,7 @@
 #per compilare
 #pyinstaller --onefile --noconsole main.py
 import openpyxl
+import os
 import tkinter as tk
 from tkinter import messagebox  # Importa messagebox per la finestra di conferma
 from tkinter import filedialog, scrolledtext, Toplevel
@@ -87,54 +88,45 @@ def carica_soluzioni(file_soluzioni):
         if foglio_corrente:
             cella = line
             formula = linee[i + 1].strip()
-            valore_atteso = linee[i + 2].strip()  # Il valore atteso
-            punti = int(linee[i + 3].strip())
-            soluzioni[foglio_corrente][cella] = (formula, valore_atteso,punti)
-            i += 4
+            punti = int(linee[i + 2].strip())
+            soluzioni[foglio_corrente][cella] = (formula, punti)
+            i += 3
 
     return soluzioni
 
-def controlla_formule(nome_file_excel, soluzioni):
-    # Apre il file Excel e controlla le formule (data_only=False per ottenere la formula)
-    workbook = openpyxl.load_workbook(nome_file_excel, data_only=False)  # Usa data_only=False per leggere le formule
+def controlla_formule(nome_file_excel, soluzioni, file_output):
+    # Apre il file Excel e controlla le formule
+    workbook = openpyxl.load_workbook(nome_file_excel, data_only=False)
     punteggio_totale = 0
     risultati = {nome_file_excel: {}}
 
+    file_output.write(f"File: {nome_file_excel}\n")
     for foglio_nome, celle in soluzioni.items():
         foglio = workbook[foglio_nome]
+        file_output.write(f"  Foglio: {foglio_nome}\n")
         risultati[nome_file_excel][foglio_nome] = {}
 
-        for cella, (formula_attesa, valore_atteso, punti) in celle.items():
-            # Ottieni l'oggetto cella dal foglio
-            cella_oggetto = foglio[cella]
+        for cella, (formula_attesa, punti) in celle.items():
+            valore_cella = foglio[cella].value
 
-            # Ottieni il valore calcolato della cella (risultato della formula)
-            valore_cella = cella_oggetto.value
-            print(f"Valore della cella (risultato formula): {valore_cella}")
+            if isinstance(valore_cella, str):
+                valore_cella = valore_cella.replace(" ", "")
 
-            # Ottieni la formula (se presente)
-            formula_cella = None
-            if hasattr(cella_oggetto, 'formula'):  # Verifica se la cella ha un attributo 'formula'
-                formula_cella = cella_oggetto.formula
-                print(f"Formula della cella: {formula_cella}")
-            else:
-                print(f"La cella {cella} non contiene una formula.")
-
-            # Confronta la formula e il valore
-            if formula_cella == formula_attesa and valore_cella == valore_atteso:
+            if valore_cella == formula_attesa:
+            #if uguali:
                 risultati[nome_file_excel][foglio_nome][cella] = f"Formula corretta: {formula_attesa} (+{punti} punti)"
+                file_output.write(f"    Cella {cella}: Formula corretta: {formula_attesa} (+{punti} punti)\n")
                 punteggio_totale += punti
             else:
-                if formula_cella != formula_attesa:
-                    risultati[nome_file_excel][foglio_nome][
-                        cella] = f"Formula errata. Attesa: {formula_attesa}, Trovata: {formula_cella} (0 punti)"
-                if valore_cella != valore_atteso:
-                    risultati[nome_file_excel][foglio_nome][
-                        cella] += f"\nValore errato. Atteso: {valore_atteso}, Trovato: {valore_cella} (0 punti)"
+                risultati[nome_file_excel][foglio_nome][
+                    cella] = f"Formula errata. Attesa: {formula_attesa}, Trovata: {valore_cella} (0 punti)"
+                file_output.write(
+                    f"    Cella {cella}: Formula errata. Attesa: {formula_attesa}, Trovata: {valore_cella} (0 punti)\n")
 
+    file_output.write(f"\nPunteggio totale per {nome_file_excel}: {punteggio_totale}\n\n\n")
     return risultati, punteggio_totale
 
-def calcola_punteggio_totale(file_elenco_excel, file_soluzioni):
+def calcola_punteggio_totale(file_elenco_excel, file_soluzioni, file_output):
     # Carica le soluzioni e inizializza il punteggio complessivo
     soluzioni = carica_soluzioni(file_soluzioni)
     risultati_globale = {}
@@ -145,35 +137,31 @@ def calcola_punteggio_totale(file_elenco_excel, file_soluzioni):
 
     # Calcola il punteggio per ciascun file Excel
     for nome_file_excel in nomi_file_excel:
-        risultati, punteggio_totale = controlla_formule("./verifiche/"+nome_file_excel, soluzioni)
+        risultati, punteggio_totale = controlla_formule(directory_verifiche+nome_file_excel, soluzioni, file_output)
         risultati_globale.update(risultati)
 
     return risultati_globale, punteggio_totale
 
 def correggi():
-    file_elenco_excel = 'elencoalunni.txt'
-    file_soluzioni = 'soluzioni.txt'
-    risultati_globale, punteggio_totale = calcola_punteggio_totale(file_elenco_excel, file_soluzioni)
-    with open("correzione.txt", "w") as file:
-        file.write(f"Correzione\n")
-    # Stampa i risultati e il punteggio totale complessivo
-    for nome_file, fogli in risultati_globale.items():
-        with open("correzione.txt", "a") as file:
-            file.write(f"File: {nome_file}\n")
-            print(f"File: {nome_file}")
-            for foglio, celle in fogli.items():
-                file.write(f"  Foglio: {foglio}\n")
-                print(f"  Foglio: {foglio}")
-                for cella, risultato in celle.items():
-                    file.write(f"    Cella {cella}: {risultato}\n")
-                    print(f"    Cella {cella}: {risultato}")
-            file.write(f"\nPunteggio totale complessivo ottenuto: {punteggio_totale}\n\n\n")
-            print(f"\nPunteggio totale complessivo ottenuto: {punteggio_totale}")
+
+    # Controlla se il file esiste
+    if os.path.isfile(file_correzione):
+        os.remove(file_correzione)  # Cancella il file
+
+    with open(file_correzione, "a") as file_output:
+        file_output.write("Correzione\n")
+        calcola_punteggio_totale(file_elenco_excel, file_soluzioni, file_output)
     mostra_file()
 
 #main
+#definisce i file di lavoro
+file_elenco_excel = 'elencoalunni.txt'
+file_soluzioni = 'soluzioni.txt'
+file_correzione = "correzione.txt"
+directory_verifiche = "./verifiche/"
+
 #Definisce i colori
-colore_sfondo_root = "#AAC2FB"
+colore_sfondo_root = "#107C41"
 colore_sfondo_line = "white"
 colore_sfondo_titolo = "#5F70E7"
 colore_testo_titolo = "white"
@@ -192,7 +180,7 @@ font_developed = ("Arial", 10)  # Font Arial, dimensione 16
 
 # Crea la finestra principale
 root = tk.Tk()
-root.title("Correttore Excel")
+root.title("Correttore verifiche di Excel")
 root.configure(bg=colore_sfondo_root)
 larghezza_finestra=900
 altezza_finestra=600
@@ -225,8 +213,16 @@ button_correggi.grid(row=1, column=1, pady=2, sticky="w")
 button_correggi.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
 button_correggi.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
 
-label_2 = tk.Label(frame_center, text="Ricorda: inserire le verifiche nella directory verifiche", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
+label_2 = tk.Label(frame_center, text="Ricorda: inserire le verifiche nella directory verifiche", wraplength=400, bg=colore_sfondo_label, fg=colore_testo_label, font=font)
 label_2.grid(row=1, column=2, padx=5, pady=2, sticky="w")
+
+#pulsante di chiusura
+button_exit = tk.Button(frame_center, text="Exit",  bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=exit_app)
+
+button_exit.grid(row=2, column=4, pady=2)
+# Bind degli eventi per il cambiamento di colore
+button_exit.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
+button_exit.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
 
 # Avvia il loop principale della finestra
 root.mainloop()
