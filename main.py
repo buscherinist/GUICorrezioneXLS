@@ -7,6 +7,9 @@ import tkinter as tk
 from tkinter import messagebox  # Importa messagebox per la finestra di conferma
 from tkinter import filedialog, scrolledtext, Toplevel
 
+#variabili globali
+file_soluzione_excel = ""
+
 def center_window():
     # Aggiorna le dimensioni della finestra in base ai contenuti
     root.update_idletasks()  # Aggiorna il layout e le dimensioni
@@ -154,16 +157,22 @@ def correggi():
         calcola_punteggio_totale(file_elenco_excel, file_soluzioni, file_output)
     mostra_file()
 
+def scegli_file():
+    global file_soluzione_excel
+    # Apri la finestra di dialogo per scegliere un file
+    percorso_file = filedialog.askopenfilename()
+    # Mostra il percorso del file selezionato (se esiste) in una Label
+    if percorso_file:
+        file_soluzione_excel=percorso_file
+
 def crea_soluzione():
+    global file_soluzione_excel
     # Percorso del file Excel
-    percorso_file = "soluzione/zoli.xlsx"
+    percorso_file = file_soluzione_excel
     workbook = load_workbook(percorso_file)
 
-    # Nome del file di output
-    output_file = "celle_colorate_con_formula.txt"
-
     # Apre il file di output in modalità scrittura
-    with open("prova.txt", "w") as f:
+    with open(file_soluzioni, "w") as f:
         # Itera su tutti i fogli del file
         for sheet_name in workbook.sheetnames:
             sheet = workbook[sheet_name]
@@ -177,7 +186,7 @@ def crea_soluzione():
                     if fill and fill.start_color.index not in ["00000000", "FFFFFFFF","FFFFFF00"]:
                         if not foglio_con_celle_colorate:
                             # Scrive il nome del foglio nel file
-                            f.write(f"Foglio: {sheet_name}\n")
+                            f.write(f"{sheet_name}\n")
                             foglio_con_celle_colorate = True
 
                         # Ottiene la formula della cella, se presente
@@ -189,7 +198,8 @@ def crea_soluzione():
                         f.write(f"{formula}\n")
                         f.write(f"1\n")
 
-    print("Risultati salvati in:", output_file)
+    #print("Risultati salvati in:", file_soluzioni)
+    messagebox.showinfo("Conferma", "File delle soluzioni creato con successo!")
 
 #main
 #definisce i file di lavoro
@@ -197,6 +207,7 @@ file_elenco_excel = 'elencoalunni.txt'
 file_soluzioni = 'soluzioni.txt'
 file_correzione = "correzione.txt"
 directory_verifiche = "./verifiche/"
+
 
 #Definisce i colori
 colore_sfondo_root = "#107C41"
@@ -231,33 +242,43 @@ root.protocol("WM_DELETE_WINDOW", exit_app)
 frame_center = tk.Frame(root, bg=colore_sfondo_root)
 frame_center.pack(expand=True, fill="both")
 
-# Prima riga: label e campo di input centrato
-label_0 = tk.Label(frame_center, text="Creazione soluzione", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
+# pulsante per aprire la finestra di dialogo
+label_0 = tk.Label(frame_center, text="Scegli file delle soluzioni", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
 label_0.grid(row=0, column=0, padx=5, pady=2, sticky="w")
 
+btn_scegli_file = tk.Button(frame_center, text="Scegli", command=scegli_file, font=font)
+btn_scegli_file.grid(row=0, column=1, pady=2, sticky="w")
+
+#label_path = tk.Label(frame_center, text="Nessun file selezionato", font=font)
+#label_path.grid(row=0, column=2, padx=5, pady=2, sticky="w")
+
+# Prima riga: label e campo di input centrato
+label_1 = tk.Label(frame_center, text="Creazione soluzione", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
+label_1.grid(row=1, column=0, padx=5, pady=2, sticky="w")
+
 button_soluzione = tk.Button(frame_center, text="Crea soluzione", bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=crea_soluzione)
-button_soluzione.grid(row=0, column=1, pady=2, sticky="w")
+button_soluzione.grid(row=1, column=1, pady=2, sticky="w")
 # Bind degli eventi per il cambiamento di colore
 button_soluzione.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
 button_soluzione.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
 
 # Prima riga: label e campo di input centrato
-label_1 = tk.Label(frame_center, text="Correzione verifiche", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
-label_1.grid(row=1, column=0, padx=5, pady=2, sticky="w")
+label_2 = tk.Label(frame_center, text="Correzione verifiche", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
+label_2.grid(row=2, column=0, padx=5, pady=2, sticky="w")
 
 button_correggi = tk.Button(frame_center, text="Correggi", bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=correggi)
-button_correggi.grid(row=1, column=1, pady=2, sticky="w")
+button_correggi.grid(row=2, column=1, pady=2, sticky="w")
 # Bind degli eventi per il cambiamento di colore
 button_correggi.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
 button_correggi.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
 
-label_2 = tk.Label(frame_center, text="Ricorda: inserire le verifiche nella directory verifiche", wraplength=400, bg=colore_sfondo_label, fg=colore_testo_label, font=font)
-label_2.grid(row=1, column=2, padx=5, pady=2, sticky="w")
+label_21 = tk.Label(frame_center, text="Ricorda: inserire le verifiche nella directory verifiche", wraplength=400, bg=colore_sfondo_label, fg=colore_testo_label, font=font)
+label_21.grid(row=2, column=2, padx=5, pady=2, sticky="w")
 
 #pulsante di chiusura
 button_exit = tk.Button(frame_center, text="Exit",  bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=exit_app)
 
-button_exit.grid(row=2, column=4, pady=2)
+button_exit.grid(row=3, column=4, pady=2)
 # Bind degli eventi per il cambiamento di colore
 button_exit.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
 button_exit.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
