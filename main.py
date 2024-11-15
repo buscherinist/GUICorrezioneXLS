@@ -137,8 +137,7 @@ def calcola_punteggio_totale(file_elenco_excel, file_soluzioni, file_output):
 
     # Legge la lista dei file Excel
     with open(file_elenco_excel, 'r') as file:
-        nomi_file_excel = [line.strip().lower() for line in file if line.strip()]
-
+        nomi_file_excel = [line.strip().lower()+".xlsx" for line in file if line.strip()]
     # Calcola il punteggio per ciascun file Excel
     for nome_file_excel in nomi_file_excel:
         risultati, punteggio_totale = controlla_formule(directory_verifiche+nome_file_excel, soluzioni, file_output)
@@ -163,10 +162,20 @@ def scegli_file():
     percorso_file = filedialog.askopenfilename()
     # Mostra il percorso del file selezionato (se esiste) in una Label
     if percorso_file:
+        if percorso_file:
+            nome_file = os.path.basename(percorso_file)
+            label_path01.config(text=nome_file)
         file_soluzione_excel=percorso_file
 
 def crea_soluzione():
     global file_soluzione_excel
+
+    testo_label=label_path01.cget("text")
+
+    if not testo_label.endswith(".xlsx"):
+        messagebox.showinfo("Conferma", "Indicare prima il file delle soluzioni!")
+        return
+
     # Percorso del file Excel
     percorso_file = file_soluzione_excel
     workbook = load_workbook(percorso_file)
@@ -231,8 +240,8 @@ font_developed = ("Arial", 10)  # Font Arial, dimensione 16
 root = tk.Tk()
 root.title("Correttore verifiche di Excel")
 root.configure(bg=colore_sfondo_root)
-larghezza_finestra=900
-altezza_finestra=600
+larghezza_finestra=800
+altezza_finestra=400
 root.geometry(f"{larghezza_finestra}x{altezza_finestra}")
 center_window()
 # Sovrascrivi il comportamento del pulsante di chiusura
@@ -242,43 +251,51 @@ root.protocol("WM_DELETE_WINDOW", exit_app)
 frame_center = tk.Frame(root, bg=colore_sfondo_root)
 frame_center.pack(expand=True, fill="both")
 
+# Etichetta vuota per lo spazio
+spazio_vuoto = tk.Label(frame_center, text="", bg=colore_sfondo_root)
+spazio_vuoto.grid(row=0, column=4, pady=10)  # Aggiungi una riga vuota con un padding verticale
+
 # pulsante per aprire la finestra di dialogo
 label_0 = tk.Label(frame_center, text="Scegli file delle soluzioni", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
-label_0.grid(row=0, column=0, padx=5, pady=2, sticky="w")
+label_0.grid(row=1, column=0, padx=5, pady=2, sticky="w")
 
 btn_scegli_file = tk.Button(frame_center, text="Scegli", command=scegli_file, font=font)
-btn_scegli_file.grid(row=0, column=1, pady=2, sticky="w")
+btn_scegli_file.grid(row=1, column=1, pady=2, sticky="w")
 
-#label_path = tk.Label(frame_center, text="Nessun file selezionato", font=font)
-#label_path.grid(row=0, column=2, padx=5, pady=2, sticky="w")
+# Label per mostrare il percorso del file selezionato
+label_path01 = tk.Label(frame_center, text="Nessun file selezionato", wraplength=400, font=font)
+label_path01.grid(row=1, column=2, pady=2, sticky="w")
 
 # Prima riga: label e campo di input centrato
 label_1 = tk.Label(frame_center, text="Creazione soluzione", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
-label_1.grid(row=1, column=0, padx=5, pady=2, sticky="w")
+label_1.grid(row=2, column=0, padx=5, pady=2, sticky="w")
 
 button_soluzione = tk.Button(frame_center, text="Crea soluzione", bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=crea_soluzione)
-button_soluzione.grid(row=1, column=1, pady=2, sticky="w")
+button_soluzione.grid(row=2, column=1, pady=2, sticky="w")
 # Bind degli eventi per il cambiamento di colore
 button_soluzione.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
 button_soluzione.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
 
 # Prima riga: label e campo di input centrato
 label_2 = tk.Label(frame_center, text="Correzione verifiche", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
-label_2.grid(row=2, column=0, padx=5, pady=2, sticky="w")
+label_2.grid(row=3, column=0, padx=5, pady=2, sticky="w")
 
 button_correggi = tk.Button(frame_center, text="Correggi", bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=correggi)
-button_correggi.grid(row=2, column=1, pady=2, sticky="w")
+button_correggi.grid(row=3, column=1, pady=2, sticky="w")
 # Bind degli eventi per il cambiamento di colore
 button_correggi.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
 button_correggi.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
 
 label_21 = tk.Label(frame_center, text="Ricorda: inserire le verifiche nella directory verifiche", wraplength=400, bg=colore_sfondo_label, fg=colore_testo_label, font=font)
-label_21.grid(row=2, column=2, padx=5, pady=2, sticky="w")
+label_21.grid(row=3, column=2, padx=5, pady=2, sticky="w")
+
+# Etichetta vuota per lo spazio
+spazio_vuoto = tk.Label(frame_center, text="", bg=colore_sfondo_root)
+spazio_vuoto.grid(row=4, column=4, pady=10)  # Aggiungi una riga vuota con un padding verticale
 
 #pulsante di chiusura
 button_exit = tk.Button(frame_center, text="Exit",  bg=colore_sfondo_button, fg=colore_testo_button, font=font, command=exit_app)
-
-button_exit.grid(row=3, column=4, pady=2)
+button_exit.grid(row=5, column=2, pady=2)
 # Bind degli eventi per il cambiamento di colore
 button_exit.bind("<Enter>", on_enter)  # Quando il mouse entra nel pulsante
 button_exit.bind("<Leave>", on_leave)  # Quando il mouse esce dal pulsante
