@@ -259,7 +259,7 @@ spazio_vuoto.grid(row=0, column=4, pady=10)  # Aggiungi una riga vuota con un pa
 label_0 = tk.Label(frame_center, text="Scegli file delle soluzioni", bg=colore_sfondo_label, fg=colore_testo_label, font=font)
 label_0.grid(row=1, column=0, padx=5, pady=2, sticky="w")
 
-btn_scegli_file = tk.Button(frame_center, text="Scegli", command=scegli_file, font=font)
+btn_scegli_file = tk.Button(frame_center, text="Scegli", comm=scegli_file, font=font)
 btn_scegli_file.grid(row=1, column=1, pady=2, sticky="w")
 
 # Label per mostrare il percorso del file selezionato
