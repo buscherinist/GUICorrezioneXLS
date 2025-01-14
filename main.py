@@ -82,7 +82,7 @@ def carica_soluzioni(file_soluzioni):
         line = linee[i].strip()
 
         # Se la linea è un nome di foglio
-        if line.startswith("Foglio"):
+        if line.startswith("esercizio"):
             foglio_corrente = line
             soluzioni[foglio_corrente] = {}
             i += 1
@@ -192,7 +192,7 @@ def crea_soluzione():
                 for cell in row:
                     fill = cell.fill
                     # Controlla se la cella ha un colore diverso dal default
-                    if fill and fill.start_color.index not in ["00000000", "FFFFFFFF","FFFFFF00"]:
+                    if fill and fill.start_color.index not in ["00000000", "FFFFFFFF","FBE2D5"]:
                         if not foglio_con_celle_colorate:
                             # Scrive il nome del foglio nel file
                             f.write(f"{sheet_name}\n")
